@@ -1,4 +1,4 @@
-package DAO;
+package dao;
 
 import entity.Product;
 
@@ -25,7 +25,7 @@ public class ProductDAO {
                 String[] parts = line.split(",");
 
                 Product product = new Product(Integer.parseInt(parts[0]), parts[1], parts[2], Double.parseDouble(parts[3]), Integer.parseInt(parts[4]));
-                
+
                 products.add(product);
             }
         }
