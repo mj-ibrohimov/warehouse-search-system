@@ -7,7 +7,7 @@
 | 3 | Setup Development Environment               | 2024-03-22 | 2024-03-25 | Configure IDE, Git, and other necessary tools    |
 | 4 | Implement an Entity and DAO Layer          | 2024-03-25 | 2024-03-29 | Implement entity layer and DAO layer for reading and writing data |
 | 5 | Design Application Architecture             | 2024-03-30 | 2024-04-05 | Design multilayer architecture and define models |
-| 6 | Implement Command Line Interface (CLI)      | 2024-04-05 | 2024-04-07 | Develop CLI for commands and input parameters     |
+| 6 | Implement Command Line Interface (CLI)      | 2024-04-05 | 2024-04-07 | Develop b CLI for commands and input parameters     |
 | 7 | Implement Command Execution Logic           | 2024-04-08 | 2024-04-10 | Code logic for command execution and calculations|
 | 8 | Integrate Inventory Data Reading            | 2024-04-11 | 2024-04-13 | Integrate inventory data reading from .csv text file   |
 | 9 | Implement Product Search Functionality      | 2024-04-14 | 2024-04-16 | Develop search functionality based on parameters |
