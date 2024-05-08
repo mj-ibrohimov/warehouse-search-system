@@ -1,67 +1,230 @@
-package warehouse.dao;
+package warehouse.services;
 
-import warehouse.config.CustomFileReader;
+import warehouse.dao.BookDao;
+import warehouse.domains.Book;
+import warehouse.domains.MessageHelper;
 import warehouse.domains.User;
 import warehouse.domains.UserRole;
+import warehouse.dtos.AppErrorDto;
+import warehouse.dtos.DataDto;
+import warehouse.dtos.ResponseEntity;
+import warehouse.exceptions.GenericNotFoundException;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
-public class UserDao implements BaseDao<User> {
-    private final String userFile = "src/main/resources/user.csv";
-    private final CustomFileReader fileReader = new CustomFileReader();
+public class BookService implements BaseService<Book> {
+
+    private final BookDao bookDao = new BookDao();
+    private final Random random = new Random();
 
     @Override
-    public List<User> findAll() throws IOException {
-        return readUserFile();
-    }
-
-    public List<User> readUserFile() throws IOException {
-        List<User> user = new ArrayList<>();
-        List<String> strings = fileReader.readFile(userFile);
-        strings.forEach(s -> user.add(toUser(s)));
-        return user;
-    }
-
-    private User toUser(String line) {
-        String[] strings = line.split(",");
-        return User.childBuilder()
-                .id(Long.valueOf(strings[0]))
-                .username((strings[1]))
-                .password(strings[2])
-                .fullName(strings[3])
-                .phoneNumber(strings[4])
-                .role(UserRole.valueOf(strings[5]))
-                .build();
-    }
-
-    // Updated functionality from the first commit:
-    public void saveUserCsvFile(User user) {
-        try (FileWriter fileWriter = new FileWriter(userFile, true)) {
-            fileWriter.write(user.getId() + "," + user.getUsername() + "," +
-                    user.getPassword() + "," + user.getFullName() + "," + user.getPhoneNumber() + "," + user.getRole() + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
+    public ResponseEntity<DataDto<List<Book>>> findAll(String sort) {
+        try {
+            List<Book> book = bookDao.findAll();
+            if (book.isEmpty()) {
+                throw new GenericNotFoundException("Books not found!");
+            }
+            switch (sort) {
+                case "1" -> book.sort(Comparator.comparing(Book::getId));
+                case "2" -> book.sort(Comparator.comparing(Book::getPrice));
+            }
+            return new ResponseEntity<>(new DataDto<>(book));
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
         }
     }
 
-    public void removeUser(Long userId) {
-        List<String> lines = null;
-        Path path = Paths.get(userFile);
+    @Override
+    public ResponseEntity<DataDto<Book>> findByID(Long id) {
         try {
-            lines = fileReader.readFile(userFile);
-            List<String> modifiedLines = new ArrayList<>();
-            List<String> strings = List.of("id,username,password,fullName,phoneNumber,role");
-            modifiedLines.addAll(strings);
-            modifiedLines.addAll(lines.stream().filter(line -> !line.startsWith(userId + ",")).toList());
-            Files.write(path, modifiedLines);
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
+            Book book = bookDao.findAll().stream().filter(book1 ->
+                    book1.getId().equals(id)).findFirst().orElse(null);
+            if (book == null) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(book), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    @Override
+    public ResponseEntity<DataDto<List<Book>>> filterByPrice(Double min, Double max) {
+        try {
+            List<Book> books = bookDao.findAll().stream().filter(book ->
+                    book.getPrice() >= min && book.getPrice() <= max).toList();
+            if (books.isEmpty()) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(books), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    @Override
+    public ResponseEntity<DataDto<List<Book>>> findByPrice(Double price) {
+        try {
+            List<Book> books = bookDao.findAll().stream().filter(book ->
+                    book.getPrice().equals(price)).toList();
+            if (books.isEmpty()) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(books), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    @Override
+    public ResponseEntity<DataDto<List<Book>>> findByAuthorName(String authorName) {
+        try {
+            List<Book> books = bookDao.findAll().stream().filter(book ->
+                    book.getAuthor_name().equals(authorName)).toList();
+            if (books.isEmpty()) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(books), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    @Override
+    public ResponseEntity<DataDto<Book>> findBypageCount(Integer pageCount) {
+        try {
+            Book book = bookDao.findAll().stream().filter(book1 ->
+                    book1.getPageCount().equals(pageCount)).findFirst().orElse(null);
+            if (book == null) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(book), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    public ResponseEntity<DataDto<List<Book>>> findByColor(String color) {
+        try {
+            List<Book> books = bookDao.findAll().stream().filter(book ->
+                    book.getColor().equals(color)).toList();
+            if (books.isEmpty()) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(books), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+
+    public ResponseEntity<DataDto<List<Book>>> findByWidthAndHeight(Double width, Double height) {
+        try {
+            List<Book> keyboards = bookDao.findAll().stream().filter(keyboard ->
+                    keyboard.getWidth().equals(width) && keyboard.getHeight().equals(height)).toList();
+            if (keyboards.isEmpty()) {
+                throw new GenericNotFoundException("Book not found!");
+            }
+            return new ResponseEntity<>(new DataDto<>(keyboards), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    public ResponseEntity<DataDto<Book>> addBook(String authorName, Double price, String color) {
+        try {
+            Book book = new Book();
+            book.setId(random.nextLong(1000) + 1);
+            book.setColor(color);
+            book.setAuthor_name(authorName);
+            book.setPrice(price);
+            book.setWidth(random.nextDouble(1000) + 1);
+            book.setHeight(random.nextDouble(1000) + 1);
+            book.setPageCount(random.nextInt(1000) + 1);
+            bookDao.saveData(book);
+            return new ResponseEntity<>(new DataDto<>(book), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
+        }
+    }
+
+    public String bookList() {
+        try {
+            List<Book> books = null;
+            books = bookDao.findAll();
+            String bookList = "";
+            int i = 0;
+            if (books.isEmpty()) {
+                System.out.println("Book not found!");
+                return null;
+            }
+            for (Book book : books) {
+                String str = "";
+                str = i + ")" + "| id: " + book.getId() + "| authorName: " + book.getAuthor_name() + " | color: " + book.getColor() + " |";
+                System.out.println(str);
+                bookList += str;
+                i++;
+            }
+            if (bookList == "")
+                System.out.println(MessageHelper.BOOK_NOT_FOUND);
+
+            return bookList;
+        } catch (
+                IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ResponseEntity<DataDto<Book>> update(Long id, String newAuthorName, String newColor) {
+        try {
+            ResponseEntity<DataDto<Book>> byID = findByID(id);
+            Book book = byID.getData().getBody();
+            bookDao.removeBook(id);
+            Book book1 = new Book();
+            book1.setId(id);
+            book1.setPrice(book.getPrice());
+            book1.setColor(newColor);
+            book1.setAuthor_name(newAuthorName);
+            book1.setHeight(book.getHeight());
+            book1.setWidth(book.getWidth());
+            book1.setPageCount(book.getPageCount());
+            bookDao.saveData(book1);
+            return new ResponseEntity<>(new DataDto<>(book1), 200);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new DataDto<>(AppErrorDto.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getMessage())
+                    .build()), 400);
         }
     }
 }
