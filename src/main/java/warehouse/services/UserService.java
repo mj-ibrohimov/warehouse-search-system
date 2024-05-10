@@ -1,26 +1,20 @@
 package warehouse.services;
 
-import com.opencsv.CSVWriter;
-import com.opencsv.CSVWriterBuilder;
+import warehouse.dao.UserDao;
 import warehouse.controller.BookController;
 import warehouse.controller.MagazineController;
 import warehouse.controller.PosterController;
-import warehouse.dao.UserDao;
-import warehouse.domains.Book;
 import warehouse.domains.MessageHelper;
 import warehouse.domains.User;
 import warehouse.domains.UserRole;
-import warehouse.dtos.AppErrorDto;
-import warehouse.dtos.DataDto;
-import warehouse.dtos.ResponseEntity;
-import warehouse.exceptions.DaoException;
 import warehouse.exceptions.GenericNotFoundException;
-import warehouse.ui.AppUI;
 import warehouse.utils.BaseUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Random;
 
 public class UserService {
 
